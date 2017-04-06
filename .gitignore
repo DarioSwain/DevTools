@@ -24,6 +24,7 @@
 /var/bootstrap.php.cache
 /bin/*
 !bin/console
+!bin/devtools
 !bin/symfony_requirements
 /vendor/
 
