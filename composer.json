@@ -4,6 +4,8 @@
   "description": "Development Tools to automate some routine manual operations.",
   "keywords": ["development", "tools", "git", "stash", "jira"],
   "license": "MIT",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "authors": [
     {
       "name": "Ilya Pokamestov",
@@ -14,7 +16,9 @@
   ],
   "require": {
     "php": ">=7.0",
-    "symfony/console": "~3.2"
+    "symfony/console": "~3.2",
+    "cpliakas/git-wrapper": "~1.7",
+    "dario_swain/stash-api": "dev-master"
   },
   "require-dev": {
   },
