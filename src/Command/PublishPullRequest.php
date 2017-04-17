@@ -4,8 +4,9 @@ namespace DS\DevTools\Command;
 
 use DS\DevTools\Repository\RepositoryRepository;
 use GitWrapper\GitWrapper;
-use StashAPILib\Configuration;
-use StashAPILib\StashAPIClient;
+use Swagger\Client\Api\PullRequestApi;
+use Swagger\Client\ApiClient;
+use Swagger\Client\Configuration;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -67,11 +68,16 @@ class PublishPullRequest extends Command
         $question = new Question('Please enter PR title ['.$title.']: ', $title);
         $title = $helper->ask($input, $output, $question);
 
-        var_dump($title);die;
+//        var_dump($title);die;
 
-        Configuration::$BASEURI = '';
-        Request::auth('', '');
-        $stashClient = (new StashAPIClient())->getClient();
+        $stashConfiguration = new Configuration();
+        $stashConfiguration->setHost('');
+        $stashConfiguration->setUsername('');
+        $stashConfiguration->setPassword('');
+
+        $stashClient = new PullRequestApi(new ApiClient($stashConfiguration));
+
+        $stashClient->createPullRequest();
 
 //        var_dump($stashClient->create([
 //            "title" => "Talking Nerdy",

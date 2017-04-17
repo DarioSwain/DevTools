@@ -4,8 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "8ed0a4d311509cea0a6b362c9dd7d0fd",
-    "content-hash": "35fa27989881ee426ecb25ca82e20c5d",
+    "content-hash": "b0f5485787cb434af1b8378d8b936fee",
     "packages": [
         {
             "name": "apimatic/jsonmapper",
@@ -50,7 +49,7 @@
                 }
             ],
             "description": "Map nested JSON structures onto PHP classes",
-            "time": "2017-04-06 13:14:24"
+            "time": "2017-04-06T13:14:24+00:00"
         },
         {
             "name": "cpliakas/git-wrapper",
@@ -105,37 +104,38 @@
             "keywords": [
                 "git"
             ],
-            "time": "2016-04-19 16:12:33"
+            "time": "2016-04-19T16:12:33+00:00"
         },
         {
             "name": "dario_swain/stash-api",
-            "version": "dev-master",
+            "version": "dev-swagger",
             "source": {
                 "type": "git",
                 "url": "https://github.com/DarioSwain/StashApi.git",
-                "reference": "47ce9d7823615730bfb53d2bdcc13269f272a42e"
+                "reference": "3ab8642949fa2aad392021448b8a7dcf2b6f7c51"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/DarioSwain/StashApi/zipball/47ce9d7823615730bfb53d2bdcc13269f272a42e",
-                "reference": "47ce9d7823615730bfb53d2bdcc13269f272a42e",
+                "url": "https://api.github.com/repos/DarioSwain/StashApi/zipball/3ab8642949fa2aad392021448b8a7dcf2b6f7c51",
+                "reference": "3ab8642949fa2aad392021448b8a7dcf2b6f7c51",
                 "shasum": ""
             },
             "require": {
-                "apimatic/jsonmapper": "~1.2.0",
                 "ext-curl": "*",
                 "ext-json": "*",
                 "ext-mbstring": "*",
-                "mashape/unirest-php": "~3.0.1",
-                "php": ">=5.4.0"
+                "php": ">=5.4"
             },
             "require-dev": {
-                "squizlabs/php_codesniffer": "^2.7"
+                "friendsofphp/php-cs-fixer": "~1.12",
+                "phpunit/phpunit": "~4.8",
+                "satooshi/php-coveralls": "~1.0",
+                "squizlabs/php_codesniffer": "~2.6"
             },
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "StashAPILib\\": "src/"
+                    "Swagger\\Client\\": "lib/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -156,7 +156,7 @@
                 "api",
                 "sdk"
             ],
-            "time": "2017-04-07 15:34:07"
+            "time": "2017-04-17 20:06:44"
         },
         {
             "name": "mashape/unirest-php",
@@ -202,7 +202,7 @@
                 "https",
                 "rest"
             ],
-            "time": "2016-08-11 17:49:21"
+            "time": "2016-08-11T17:49:21+00:00"
         },
         {
             "name": "psr/log",
@@ -249,7 +249,7 @@
                 "psr",
                 "psr-3"
             ],
-            "time": "2016-10-10 12:19:37"
+            "time": "2016-10-10T12:19:37+00:00"
         },
         {
             "name": "symfony/console",
@@ -312,7 +312,7 @@
             ],
             "description": "Symfony Console Component",
             "homepage": "https://symfony.com",
-            "time": "2017-04-04 14:33:42"
+            "time": "2017-04-04T14:33:42+00:00"
         },
         {
             "name": "symfony/debug",
@@ -369,7 +369,7 @@
             ],
             "description": "Symfony Debug Component",
             "homepage": "https://symfony.com",
-            "time": "2017-03-28 21:38:24"
+            "time": "2017-03-28T21:38:24+00:00"
         },
         {
             "name": "symfony/event-dispatcher",
@@ -429,7 +429,7 @@
             ],
             "description": "Symfony EventDispatcher Component",
             "homepage": "https://symfony.com",
-            "time": "2017-04-04 07:26:27"
+            "time": "2017-04-04T07:26:27+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",
@@ -488,7 +488,7 @@
                 "portable",
                 "shim"
             ],
-            "time": "2016-11-14 01:06:16"
+            "time": "2016-11-14T01:06:16+00:00"
         },
         {
             "name": "symfony/process",
@@ -537,7 +537,7 @@
             ],
             "description": "Symfony Process Component",
             "homepage": "https://symfony.com",
-            "time": "2017-03-27 18:07:02"
+            "time": "2017-03-27T18:07:02+00:00"
         }
     ],
     "packages-dev": [],
