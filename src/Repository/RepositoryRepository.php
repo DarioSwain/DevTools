@@ -24,7 +24,7 @@ class RepositoryRepository
 
     public function save($repository)
     {
-        $repository = $this->findByKeyAndSlug($repository['projectKey'], $repository['repositorySlug']);
+//        $existedRepository = $this->findByKeyAndSlug($repository['projectKey'], $repository['repositorySlug']);
         //TODO: Remove if exists.
 
         $this->repositories[] = $repository;

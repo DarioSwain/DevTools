@@ -2,18 +2,17 @@
 
 namespace DS\DevTools\Command;
 
+use DS\DevTools\Repository\ConfigurationRepository;
 use DS\DevTools\Repository\RepositoryRepository;
 use GitWrapper\GitWrapper;
 use Swagger\Client\Api\PullRequestApi;
+use Swagger\Client\Api\RepositoryApi;
 use Swagger\Client\ApiClient;
 use Swagger\Client\Configuration;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
-use Unirest\Request;
 
 class PublishPullRequest extends Command
 {
@@ -28,6 +27,8 @@ class PublishPullRequest extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        //TODO: Verify GIT version. Should not be 1.9.1
+
         $helper = $this->getHelper('question');
         $repository = new RepositoryRepository();
         $gitWrapper = new GitWrapper();
@@ -68,16 +69,18 @@ class PublishPullRequest extends Command
         $question = new Question('Please enter PR title ['.$title.']: ', $title);
         $title = $helper->ask($input, $output, $question);
 
-//        var_dump($title);die;
+        $configurationRepository = new ConfigurationRepository();
 
         $stashConfiguration = new Configuration();
-        $stashConfiguration->setHost('');
-        $stashConfiguration->setUsername('');
-        $stashConfiguration->setPassword('');
+        $stashConfiguration->setHost('https://'.$configurationRepository->getStashHost().'/rest');
+        $stashConfiguration->setUsername($configurationRepository->getStashUser());
+        $stashConfiguration->setPassword($configurationRepository->getStashPassword());
 
         $stashClient = new PullRequestApi(new ApiClient($stashConfiguration));
 
-        $stashClient->createPullRequest();
+        $prs = $stashClient->getPullRequests($repo['projectKey'], $repo['repositorySlug']);
+
+        var_dump(json_decode($prs));die;
 
 //        var_dump($stashClient->create([
 //            "title" => "Talking Nerdy",

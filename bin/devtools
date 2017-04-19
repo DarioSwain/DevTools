@@ -9,6 +9,7 @@ use Symfony\Component\Console\Application;
 $application = new Application();
 
 $application->addCommands([
+    new \DS\DevTools\Command\Init(),
     new \DS\DevTools\Command\AddRepository(),
     new \DS\DevTools\Command\PublishPullRequest(),
 ]);
