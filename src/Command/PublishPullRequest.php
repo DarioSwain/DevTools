@@ -5,13 +5,12 @@ namespace DS\DevTools\Command;
 use DS\DevTools\Repository\ConfigurationRepository;
 use DS\DevTools\Repository\RepositoryRepository;
 use GitWrapper\GitWrapper;
-use Swagger\Client\Api\PullRequestApi;
-use Swagger\Client\Api\RepositoryApi;
-use Swagger\Client\ApiClient;
-use Swagger\Client\Configuration;
+use StashAPILib\StashAPIClient;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ChoiceQuestion;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
 use Symfony\Component\Console\Question\Question;
 
 class PublishPullRequest extends Command
@@ -46,6 +45,8 @@ class PublishPullRequest extends Command
 
         $repo = $repository->findByForkKeyAndSlug($projectKey, $repositorySlug);
 
+        $reviewers = array_map(function ($value) { return ["user" => ["name" => $value]]; }, $repo['reviewers']);
+
         if (null === $repo) {
             $output->writeln('Impossible to find proper repository by projectKey ('.$projectKey.') and repository slug ('.$repositorySlug.')');
             return;
@@ -55,67 +56,126 @@ class PublishPullRequest extends Command
         $question = new Question('Please enter "from" branch: [current:'.$fromBranch.']: ', $fromBranch);
         $fromBranch = $helper->ask($input, $output, $question);
 
-        $question = new Question('Please enter "to" branch: [current:'.$fromBranch.']: ', $fromBranch);
+        $question = new Question('Please enter "to" branch: [current:develop]: ', 'develop');
         $toBranch = $helper->ask($input, $output, $question);
 
         $output->writeln([
             '',
             'Initialize Pull Request...',
             $projectKey.':'.$repositorySlug.' ('.$fromBranch.') -> '.$repo['projectKey'].':'.$repo['repositorySlug'].' ('.$toBranch.')',
+            '',
+            'Reviewers: '.implode(', ', $repo['reviewers']),
             ''
         ]);
 
         $title = trim($git->run(['log -1 --pretty=%B'])->getOutput());
-        $question = new Question('Please enter PR title ['.$title.']: ', $title);
-        $title = $helper->ask($input, $output, $question);
+
+        $pullRequestData = [];
+        while (true) {
+            $question = new Question('Please enter PR title ['.$title.']: ', $title);
+            $pullRequestData['title'] = $helper->ask($input, $output, $question);
+
+            $question = new ConfirmationQuestion('Is it bug fix? [n]: ', false);
+            $isBugFix = $helper->ask($input, $output, $question);
+            $question = new ConfirmationQuestion('Is it new feature? [n]: ', false);
+            $isNewFeature = $helper->ask($input, $output, $question);
+            $question = new ConfirmationQuestion('Are those changes break BC? [n]: ', false);
+            $isBcBreak = $helper->ask($input, $output, $question);
+            $question = new ConfirmationQuestion('Is it include deprecations? [n]: ', false);
+            $isIncludeDeprecations = $helper->ask($input, $output, $question);
+            $question = new ChoiceQuestion('Which priority should be set? [major]: ', ['minor', 'major', 'critical', 'blocker'], 'major');
+            $priority = $helper->ask($input, $output, $question);
+            $question = new Question('Please add ticket numbers [none]: ', 'none');
+            $tickets = $helper->ask($input, $output, $question);
+            $question = new Question('Please add custom PR description ['.$pullRequestData['title'].']: ', $pullRequestData['title']);
+            $customDescriptionLine = $helper->ask($input, $output, $question);
+
+            $description = <<<EOD
+| Q             | A
+| ------------- | ---
+| Bug fix?      | {$this->boolToYesNoString($isBugFix)}
+| New feature?  | {$this->boolToYesNoString($isNewFeature)}
+| BC breaks?    | {$this->boolToYesNoString($isBcBreak)}
+| Deprecations? | {$this->boolToYesNoString($isIncludeDeprecations)}
+| Priority?     | {$priority}
+| Fixed tickets | {$tickets}
+
+{$customDescriptionLine}
+
+EOD;
+            $pullRequestData['description'] = $description;
+
+            $output->writeln([
+                '',
+                'Pull request details',
+                '============',
+                'Title: '.$pullRequestData['title'],
+                '',
+                'Description:'
+            ]);
+            $output->write($description);
+
+            $question = new ConfirmationQuestion('Is PR correct and can be published? [y]: ', true);
+            if ($helper->ask($input, $output, $question)) {
+                break;
+            } else {
+                $output->writeln('Re-configure PR...');
+            }
+        }
 
         $configurationRepository = new ConfigurationRepository();
 
-        $stashConfiguration = new Configuration();
-        $stashConfiguration->setHost('https://'.$configurationRepository->getStashHost().'/rest');
-        $stashConfiguration->setUsername($configurationRepository->getStashUser());
-        $stashConfiguration->setPassword($configurationRepository->getStashPassword());
+        $stashClient = new StashAPIClient(
+            'https://'.$configurationRepository->getStashHost(),
+            $configurationRepository->getStashUser(),
+            $configurationRepository->getStashPassword()
+        );
 
-        $stashClient = new PullRequestApi(new ApiClient($stashConfiguration));
+        $pr = $stashClient->getPullRequest()->createPullRequest(
+            [
+                "title" => $pullRequestData['title'],
+                "description" => $pullRequestData['description'],
+                "state" => "OPEN",
+                "open" => true,
+                "closed" => false,
+                "fromRef" => [
+                    "id" => "refs/heads/".$fromBranch,
+                    "repository"=> [
+                        "slug" => $repositorySlug,
+                        "name" => null,
+                        "project" => [
+                            "key" => $projectKey
+                        ],
+                    ],
+                ],
+                "toRef" => [
+                    "id" => "refs/heads/".$toBranch,
+                    "repository" => [
+                        "slug" => $repo['repositorySlug'],
+                        "name" => null,
+                        "project" => [
+                            "key" => $repo['projectKey']
+                        ],
+                    ],
+                ],
+                "locked" => false,
+                "reviewers" => $reviewers
+            ],
+            $repo['projectKey'],
+            $repo['repositorySlug']
+        );
 
-        $prs = $stashClient->getPullRequests($repo['projectKey'], $repo['repositorySlug']);
+        var_dump($pr);
+        $output->writeln([
+            '',
+            'Pull request successfully created!',
+            $pr->links->self[0]->href,
+            ''
+        ]);
+    }
 
-        var_dump(json_decode($prs));die;
-
-//        var_dump($stashClient->create([
-//            "title" => "Talking Nerdy",
-//            "description" => "It’s a kludge, but put the tuple from the database in the cache.",
-//            "state" => "OPEN",
-//            "open" => true,
-//            "closed" => false,
-//            "fromRef" => [
-//                "id" => "refs/heads/feature-ABC-123",
-//                "repository"=> [
-//                    "slug" => "my-repo",
-//                    "name" => null,
-//                    "project" => [
-//                        "key" => "PRJ"
-//                    ],
-//                ],
-//            ],
-//            "toRef" => [
-//                "id" => "refs/heads/master",
-//                "repository" => [
-//                    "slug" => "my-repo",
-//                    "name" => null,
-//                    "project" => [
-//                        "key" => "PRJ"
-//                    ],
-//                ],
-//            ],
-//            "locked" => false,
-//            "reviewers" => [
-//                [
-//                    "user" => [
-//                    "name" => "charlie"
-//                    ],
-//                ],
-//            ]
-//        ], $projectKey, $repositorySlug));
+    protected function boolToYesNoString($value)
+    {
+        return $value ? 'yes' : 'no';
     }
 }
